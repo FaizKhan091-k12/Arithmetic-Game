@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: e0d06d0f28431d145a61d321f436ffe0
+guid: 8e61fcf2d9d73424d85d06c5947e60df
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -643745093797114620
-    second: Divide Clean_0
+      213: -1895268400178880752
+    second: Subtration_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -48,7 +48,7 @@ TextureImporter:
   compressionQuality: 50
   spriteMode: 1
   spriteExtrude: 1
-  spriteMeshType: 0
+  spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
   spritePixelsToUnits: 100
@@ -139,13 +139,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Divide Clean_0
+      name: Subtration_0
       rect:
         serializedVersion: 2
         x: 0
-        y: 0
+        y: 8
         width: 1024
-        height: 1019
+        height: 1230
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -154,8 +154,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 40d82567f35f017f0800000000000000
-      internalID: -643745093797114620
+      spriteID: 01f905d7e67a2b5e0800000000000000
+      internalID: -1895268400178880752
       vertices: []
       indices: 
       edges: []
@@ -174,7 +174,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Divide Clean_0: -643745093797114620
+      Subtration_0: -1895268400178880752
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

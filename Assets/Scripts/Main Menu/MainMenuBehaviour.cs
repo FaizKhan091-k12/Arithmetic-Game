@@ -6,11 +6,17 @@ using UnityEngine.InputSystem.Composites;
 using UnityEngine.UI;
 using UnityEngine.UI.ProceduralImage;
 using DG.Tweening;
+using Unity.VisualScripting.FullSerializer;
+
 
 
 public class MainMenuBehaviour : MonoBehaviour
 {
 
+
+    [Header("Debug Options")]
+    [SerializeField] bool isDebugging;
+    [SerializeField] ParticleSystem confettiPS;
     [SerializeField] GameObject mainMenuPanel;
     [SerializeField] GameObject gameMenuPanel;
     [SerializeField] GameObject iconSymbol;
@@ -51,19 +57,36 @@ public class MainMenuBehaviour : MonoBehaviour
 
     [SerializeField] GameObject[] cards;
 
+    [SerializeField] GameObject mainMenuCanvas;
+    [SerializeField] GameObject[] levelMenuCanvas;
+    [SerializeField] ProceduralImage backGroundAttachment;
+
+
 
     bool isBackGroundMusicOn = true;
     bool isSoundMusicOn = true;
 
     Animator settingsPanelAnimator;
     Animator quitPanelAnimator;
+    private LevelSelectDecider.ArithmeticLevel selectLevel;
+
     void Start()
     {
+        if (isDebugging) return;
+        confettiPS.gameObject.SetActive(false);
         mainMenuPanel.SetActive(true);
         gameMenuPanel.SetActive(false);
         quitPanel.SetActive(true);
         iconSymbol.SetActive(true);
         settingsPanel.SetActive(true);
+
+        mainMenuCanvas.SetActive(true);
+        for (int i = 0; i < levelMenuCanvas.Length; i++)
+        {
+            levelMenuCanvas[i].SetActive(false);
+        }
+        backGroundAttachment.fillAmount = 0f;
+        backGroundAttachment.transform.GetChild(0).GetComponent<Image>().enabled = false;
         settingsPanelAnimator = settingsPanel.GetComponent<Animator>();
         settingsPanelAnimator.Play("Close");
         openSettingsBtn.onClick.AddListener(() => settingsPanelAnimator.Play("Open"));
@@ -98,10 +121,77 @@ public class MainMenuBehaviour : MonoBehaviour
         }
         foreach (GameObject card in cards)
         {
-            card.SetActive(false);
+            card.gameObject.GetComponent<Button>().interactable = false;
             card.transform.localScale = Vector3.zero;
+            card.SetActive(false);
         }
         StartCoroutine(StarsActivator());
+    }
+
+
+    public void BackButtonClicked()
+    {
+
+        fadeScreen.gameObject.SetActive(true);
+        fadeScreen.raycastTarget = true;
+
+        for (int i = 0; i < cards.Length; i++)
+        {
+            cards[i].gameObject.SetActive(true);
+        }
+        StartCoroutine(FadeInForMainManu());
+
+    }
+
+    IEnumerator FadeInForMainManu()
+    {
+
+        float t = 0f;
+
+        while (t < 1)
+        {
+            t += Time.deltaTime * fadeTimer;
+
+            fadeScreen.color = fadeScreenColor;
+            Color tempColor = fadeScreen.color;
+            tempColor.a = Mathf.Lerp(0, 1, t);
+
+            fadeScreen.color = tempColor;
+
+            yield return null;
+        }
+        StartCoroutine(FadeOutForMainMenu());
+
+
+    }
+
+    IEnumerator FadeOutForMainMenu()
+    {
+        mainMenuCanvas.SetActive(true);
+    for (int i = 0; i < levelMenuCanvas.Length; i++)
+        {
+            levelMenuCanvas[i].SetActive(false);
+        }
+        float t = 0f;
+
+        while (t < 1)
+        {
+            t += Time.deltaTime * fadeTimer;
+
+            fadeScreen.color = fadeScreenColor;
+            Color tempColor = fadeScreen.color;
+            tempColor.a = Mathf.Lerp(1, 0, t);
+
+            fadeScreen.color = tempColor;
+
+            yield return null;
+
+        }
+        fadeScreen.gameObject.SetActive(false);
+        LevelPanelSelectorPanel();
+
+
+
     }
 
 
@@ -143,7 +233,7 @@ public class MainMenuBehaviour : MonoBehaviour
         }
 
         StartCoroutine(IntheGameMenu());
-        Debug.Log("Fading in Completed");
+
 
 
     }
@@ -169,22 +259,150 @@ public class MainMenuBehaviour : MonoBehaviour
             yield return null;
 
         }
-        Debug.Log("Fading out Completed");
-        fadeScreen.gameObject.SetActive(false);
+
+
         StartCoroutine(LevelPanelSelectorPanel());
+        confettiPS.gameObject.SetActive(true);
 
     }
 
     IEnumerator LevelPanelSelectorPanel()
     {
 
+
         for (int i = 0; i < cards.Length; i++)
         {
             yield return new WaitForSeconds(.4f);
             cards[i].SetActive(true);
-            cards[i].transform.DOScale(Vector3.one, .25f).SetEase(Ease.OutFlash);
+            cards[i].transform.DOScale(Vector3.one, .4f).SetEase(Ease.InOutFlash);
+
         }
+        fadeScreen.gameObject.SetActive(false);
+        foreach (GameObject card in cards)
+        {
+
+            card.gameObject.GetComponent<Button>().interactable = true;
+
+        }
+        BackGroundAttachment();
+
     }
 
+    public void LevelSelectedButtonClicked()
+    {
+        StartCoroutine(StartLevelScreenFadeIn());
+    }
+
+    IEnumerator StartLevelScreenFadeIn()
+    {
+        fadeScreen.gameObject.SetActive(true);
+        float t = 0f;
+
+        while (t < 1)
+        {
+            t += Time.deltaTime * fadeTimer;
+
+            fadeScreen.color = fadeScreenColor;
+            Color tempColor = fadeScreen.color;
+            tempColor.a = Mathf.Lerp(0, 1, t);
+
+            fadeScreen.color = tempColor;
+
+            yield return null;
+
+        }
+
+        StartCoroutine(InsideLevelScreenFadeOut());
+
+
+
+    }
+    IEnumerator InsideLevelScreenFadeOut()
+    {
+
+        for (int i = 0; i < cards.Length; i++)
+        {
+            cards[i].gameObject.SetActive(false);
+        }
+
+        mainMenuCanvas.SetActive(false);
+        if (selectLevel == LevelSelectDecider.ArithmeticLevel.MultiplyLevel)
+        {
+            levelMenuCanvas[0].SetActive(true);
+        }
+        else if (selectLevel == LevelSelectDecider.ArithmeticLevel.AdditionLevel)
+        {
+            levelMenuCanvas[1].SetActive(true);
+        }
+        else if (selectLevel == LevelSelectDecider.ArithmeticLevel.SubtractionLevel)
+        {
+            levelMenuCanvas[2].SetActive(true);
+        }
+        else if (selectLevel == LevelSelectDecider.ArithmeticLevel.DivisionLevel)
+        {
+            levelMenuCanvas[3].SetActive(true);
+        }
+
+
+        float t = 0f;
+
+        while (t < 1)
+        {
+            t += Time.deltaTime * fadeTimer;
+
+            fadeScreen.color = fadeScreenColor;
+            Color tempColor = fadeScreen.color;
+            tempColor.a = Mathf.Lerp(1, 0, t);
+
+            fadeScreen.color = tempColor;
+
+            yield return null;
+
+        }
+
+        fadeScreen.gameObject.SetActive(false);
+
+        confettiPS.gameObject.SetActive(false);
+
+
+
+    }
+
+
+
+    public void BackGroundAttachment()
+    {
+        StartCoroutine(BackGroundAttachmentRadius());
+    }
+
+    IEnumerator BackGroundAttachmentRadius()
+    {
+        float t = 0f;
+        while (t < 1)
+        {
+            t += Time.deltaTime * fadeTimer;
+            float tempFillAmount = backGroundAttachment.fillAmount;
+
+            tempFillAmount = Mathf.Lerp(0, 1, t);
+
+            backGroundAttachment.fillAmount = tempFillAmount;
+
+            yield return null;
+
+        }
+
+        backGroundAttachment.enabled = false;
+        backGroundAttachment.transform.GetChild(0).GetComponent<Image>().enabled = true;
+    }
+
+    public void OnLevelSelector(LevelSelectDecider.ArithmeticLevel level)
+    {
+
+        selectLevel = level;
+
+
+        Debug.Log(selectLevel);
+
+    }
 
 }

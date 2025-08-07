@@ -3,6 +3,7 @@
 // A Copy of the Asset Store EULA is available at http://unity3d.com/company/legal/as_terms.
 
 using UnityEngine;
+using UnityEngine.UI.ProceduralImage;
 
 namespace Ricimi
 {
@@ -24,5 +25,9 @@ namespace Ricimi
             playPopup.Open();
             playPopup.SetAchievedStars(starsObtained);
         }
+
+
     }
+    
+
 }
