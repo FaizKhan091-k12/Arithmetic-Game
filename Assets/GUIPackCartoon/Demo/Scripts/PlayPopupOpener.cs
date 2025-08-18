@@ -14,6 +14,7 @@ namespace Ricimi
     {
         public int starsObtained = 0;
 
+     
         public override void OpenPopup()
         {
             var popup = Instantiate(popupPrefab) as GameObject;

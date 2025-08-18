@@ -9,8 +9,8 @@ public class BackButton : MonoBehaviour
     [SerializeField] ProceduralImage fadeScreen;
     [SerializeField] float fadeTimer = 1f;
     [SerializeField] GameObject[] currentLevel;
-    [SerializeField] GameObject levelSelectorPanel;
-
+    [SerializeField] GameObject add,multi,div,sub;
+    [HideInInspector] LevelSelectDecider.ArithmeticLevel arithmeticLevel;
 
     public void OnBackBtnClicked()
     {
@@ -45,7 +45,34 @@ public class BackButton : MonoBehaviour
         {
             item.SetActive(false);  
         }
-        levelSelectorPanel.SetActive(true);
+        if (arithmeticLevel == LevelSelectDecider.ArithmeticLevel.AdditionLevel)
+        {
+            add.SetActive(true);
+            multi.SetActive(false);
+            div.SetActive(false);
+            sub.SetActive(false);
+        }
+        else if (arithmeticLevel == LevelSelectDecider.ArithmeticLevel.MultiplyLevel)
+        {
+            multi.SetActive(true);
+            add.SetActive(false);
+            div.SetActive(false);
+            sub.SetActive(false);
+        }
+        else if (arithmeticLevel == LevelSelectDecider.ArithmeticLevel.DivisionLevel)
+        {
+            multi.SetActive(false);
+            add.SetActive(false);
+            div.SetActive(true);
+            sub.SetActive(false);
+        }
+        else if (arithmeticLevel == LevelSelectDecider.ArithmeticLevel.SubtractionLevel)
+        {
+            multi.SetActive(false);
+            add.SetActive(false);
+            div.SetActive(false);
+            sub.SetActive(true);
+        }
         float t = 0f;
 
         while (t < 1)

@@ -69,9 +69,11 @@ public class MainMenuBehaviour : MonoBehaviour
     Animator settingsPanelAnimator;
     Animator quitPanelAnimator;
     [HideInInspector]public LevelSelectDecider.ArithmeticLevel selectLevel;
-    [SerializeField] public GameObject multiplyAll, divisioAll, addAll, subtractAll;
+    [SerializeField] public GameObject multiplyAll, divisionAll, additionAll, subtractAll;
     [SerializeField] public GameObject[] multiplyLevels;
-
+    [SerializeField] public GameObject[] AdditionLevels;
+    [SerializeField] public GameObject[] DivisionLevels;
+    [SerializeField] public GameObject[] SubtractionLevels;
     void Awake()
     {
         Instance = this;

@@ -7,7 +7,7 @@ using UnityEngine.Rendering;
 
 public class LevelDesigner : MonoBehaviour
 {
-    public PlayPopupOpener playPopupOpeners;
+
     public static LevelDesigner Instance;
     [SerializeField] int firstQuestionNumber, secondQuestionNumber, finalAnswerNumber;
     [SerializeField] TextMeshProUGUI[] txt_AnswerGuessers;
@@ -34,6 +34,7 @@ public class LevelDesigner : MonoBehaviour
     public bool test;
 
     int correctIndex;
+     public LevelSelectDecider.ArithmeticLevel selectLevel;
 
     void Awake()
     {
@@ -67,7 +68,7 @@ public class LevelDesigner : MonoBehaviour
     void Update()
     {
         EndGameStars();
-        playPopupOpeners.starsObtained = stars;
+       
     }
 
     void EndGameStars()
@@ -258,13 +259,34 @@ public class LevelDesigner : MonoBehaviour
 
     void GenerateQuestion()
     {
-        firstQuestionNumber  = Random.Range(1, 10);   
+        firstQuestionNumber = Random.Range(1, 10);
         secondQuestionNumber = Random.Range(1, 11);
 
-        txt_FirstNumber.text  = firstQuestionNumber.ToString();
+        txt_FirstNumber.text = firstQuestionNumber.ToString();
         txt_SecondNumber.text = secondQuestionNumber.ToString();
 
-        finalAnswerNumber = firstQuestionNumber * secondQuestionNumber;
+        if (selectLevel == LevelSelectDecider.ArithmeticLevel.MultiplyLevel)
+        {
+            finalAnswerNumber = firstQuestionNumber * secondQuestionNumber;
+            Debug.Log("This Is Multiply Level");
+        }
+        else if (selectLevel == LevelSelectDecider.ArithmeticLevel.AdditionLevel)
+        {
+            Debug.Log("This is Addition Level");
+            finalAnswerNumber = firstQuestionNumber + secondQuestionNumber;
+        }
+        else if (selectLevel == LevelSelectDecider.ArithmeticLevel.DivisionLevel)
+        {
+            Debug.Log("This is Division Level");
+            finalAnswerNumber = firstQuestionNumber / secondQuestionNumber;
+        }
+        else if (selectLevel == LevelSelectDecider.ArithmeticLevel.SubtractionLevel)
+        {
+            Debug.Log("This is Subtraction Level");
+            finalAnswerNumber = firstQuestionNumber - secondQuestionNumber;
+
+        }
+
     }
 
     void GenerateAnswers()

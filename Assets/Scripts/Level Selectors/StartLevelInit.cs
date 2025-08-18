@@ -16,7 +16,7 @@ public class StartLevelInit : MonoBehaviour
     [SerializeField] TextMeshProUGUI levelText;
     [SerializeField] TextMeshProUGUI objective_Txt;
     Animator anim;
-    
+
 
 
     void OnEnable()
@@ -57,7 +57,7 @@ public class StartLevelInit : MonoBehaviour
             levelText.text = "EXPERT";
             objective_Txt.text = "You Love Challenges.Try One Here";
         }
-        
+
 
     }
     public void WhichLevelToStart()
@@ -226,7 +226,9 @@ public class StartLevelInit : MonoBehaviour
         switch (leveltoStart)
         {
             case 1:
-                Debug.Log("Let's Start Level 1 ");
+                Debug.Log("Let's Start Level 1 Add");
+                MainMenuBehaviour.Instance.additionAll.SetActive(true);
+                MainMenuBehaviour.Instance.AdditionLevels[0].SetActive(true);
                 break;
             case 2:
                 Debug.Log("Let's Start Level 2 ");
@@ -263,7 +265,9 @@ public class StartLevelInit : MonoBehaviour
         switch (leveltoStart)
         {
             case 1:
-                Debug.Log("Let's Start Level 1 ");
+                Debug.Log("Let's Start Level 1 Subtraction");
+                MainMenuBehaviour.Instance.subtractAll.SetActive(true);
+                MainMenuBehaviour.Instance.SubtractionLevels[0].SetActive(true);
                 break;
             case 2:
                 Debug.Log("Let's Start Level 2 ");
@@ -299,7 +303,9 @@ public class StartLevelInit : MonoBehaviour
         switch (leveltoStart)
         {
             case 1:
-                Debug.Log("Let's Start Level 1 ");
+                Debug.Log("Let's Start Level 1 Division");
+                MainMenuBehaviour.Instance.divisionAll.SetActive(true);
+                MainMenuBehaviour.Instance.DivisionLevels[0].SetActive(true);
                 break;
             case 2:
                 Debug.Log("Let's Start Level 2 ");
