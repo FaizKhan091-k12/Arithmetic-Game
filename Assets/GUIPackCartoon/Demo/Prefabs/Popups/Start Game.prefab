@@ -202,6 +202,7 @@ MonoBehaviour:
   fadeSpeed: 1
   canvas: {fileID: 0}
   levelText: {fileID: 1079529139468649426}
+  objective_Txt: {fileID: 4320020237386633050}
 --- !u!1 &110482
 GameObject:
   m_ObjectHideFlags: 0
@@ -1336,11 +1337,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2438046988045397025, guid: a71ae035ce5d0429a9a29210c6f978fb, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 400
+      value: 808.905
       objectReference: {fileID: 0}
     - target: {fileID: 2438046988045397025, guid: a71ae035ce5d0429a9a29210c6f978fb, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 50
+      value: 132.48
       objectReference: {fileID: 0}
     - target: {fileID: 2438046988045397025, guid: a71ae035ce5d0429a9a29210c6f978fb, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1372,11 +1373,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2438046988045397025, guid: a71ae035ce5d0429a9a29210c6f978fb, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -174
+      value: -0.0024872
       objectReference: {fileID: 0}
     - target: {fileID: 2438046988045397025, guid: a71ae035ce5d0429a9a29210c6f978fb, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -138
+      value: -161.24
       objectReference: {fileID: 0}
     - target: {fileID: 2438046988045397025, guid: a71ae035ce5d0429a9a29210c6f978fb, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -1392,11 +1393,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4347005234495330071, guid: a71ae035ce5d0429a9a29210c6f978fb, type: 3}
       propertyPath: m_text
-      value: 'Reach Score:'
+      value: Let's Test Your Skills Try to Earn  Three Stars.
       objectReference: {fileID: 0}
     - target: {fileID: 4347005234495330071, guid: a71ae035ce5d0429a9a29210c6f978fb, type: 3}
       propertyPath: m_fontSize
-      value: 46
+      value: 60
       objectReference: {fileID: 0}
     - target: {fileID: 4347005234495330071, guid: a71ae035ce5d0429a9a29210c6f978fb, type: 3}
       propertyPath: m_fontColor.b
@@ -1412,7 +1413,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4347005234495330071, guid: a71ae035ce5d0429a9a29210c6f978fb, type: 3}
       propertyPath: m_fontSizeBase
-      value: 46
+      value: 60
       objectReference: {fileID: 0}
     - target: {fileID: 4347005234495330071, guid: a71ae035ce5d0429a9a29210c6f978fb, type: 3}
       propertyPath: m_fontColor32.rgba
@@ -1420,7 +1421,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4347005234495330071, guid: a71ae035ce5d0429a9a29210c6f978fb, type: 3}
       propertyPath: m_HorizontalAlignment
-      value: 4
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 4347005234495330071, guid: a71ae035ce5d0429a9a29210c6f978fb, type: 3}
       propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
@@ -1436,6 +1437,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 2438046988045397025, guid: a71ae035ce5d0429a9a29210c6f978fb, type: 3}
   m_PrefabInstance: {fileID: 549546626452445261}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &4320020237386633050 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4347005234495330071, guid: a71ae035ce5d0429a9a29210c6f978fb, type: 3}
+  m_PrefabInstance: {fileID: 549546626452445261}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &1429778583302311578
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1661,6 +1673,10 @@ PrefabInstance:
     - target: {fileID: 2421431803653461427, guid: 83b7083b38d49490682a0c69c7d0eb26, type: 3}
       propertyPath: m_Name
       value: Text - Pink
+      objectReference: {fileID: 0}
+    - target: {fileID: 2421431803653461427, guid: 83b7083b38d49490682a0c69c7d0eb26, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -2131,6 +2147,14 @@ PrefabInstance:
       value: Level 1
       objectReference: {fileID: 0}
     - target: {fileID: 5272841521160059458, guid: 98f54b365dae841e88609187deaffe8c, type: 3}
+      propertyPath: m_fontSize
+      value: 70
+      objectReference: {fileID: 0}
+    - target: {fileID: 5272841521160059458, guid: 98f54b365dae841e88609187deaffe8c, type: 3}
+      propertyPath: m_fontSizeBase
+      value: 70
+      objectReference: {fileID: 0}
+    - target: {fileID: 5272841521160059458, guid: 98f54b365dae841e88609187deaffe8c, type: 3}
       propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
       value: 1801810542
       objectReference: {fileID: 0}
@@ -2217,6 +2241,14 @@ PrefabInstance:
     - target: {fileID: 5413129590810715060, guid: 98f54b365dae841e88609187deaffe8c, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6100936613206901108, guid: 98f54b365dae841e88609187deaffe8c, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 26.947
+      objectReference: {fileID: 0}
+    - target: {fileID: 6100936613206901108, guid: 98f54b365dae841e88609187deaffe8c, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 156
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

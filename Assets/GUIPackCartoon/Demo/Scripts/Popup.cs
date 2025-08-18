@@ -4,6 +4,7 @@
 
 using System.Collections;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.UI;
 
 namespace Ricimi
@@ -42,6 +43,8 @@ namespace Ricimi
             Destroy(gameObject);
         }
 
+        
+
         private void AddBackground()
         {
             var bgTex = new Texture2D(1, 1);
@@ -50,6 +53,7 @@ namespace Ricimi
 
             m_background = new GameObject("PopupBackground");
             var image = m_background.AddComponent<Image>();
+                                                       
             var rect = new Rect(0, 0, bgTex.width, bgTex.height);
             var sprite = Sprite.Create(bgTex, rect, new Vector2(0.5f, 0.5f), 1);
             image.material.mainTexture = bgTex;

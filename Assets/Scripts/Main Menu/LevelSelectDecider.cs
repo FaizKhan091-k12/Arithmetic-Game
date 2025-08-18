@@ -3,7 +3,7 @@ using UnityEngine.UI;
 
 public class LevelSelectDecider : MonoBehaviour
 {
-    public static LevelSelectDecider Instance;
+
 
     public enum ArithmeticLevel
     {
@@ -20,10 +20,7 @@ public class LevelSelectDecider : MonoBehaviour
     Button btn;
     public MainMenuBehaviour mainMenu;
 
-    void Awake()
-    {
-        Instance = this;
-    }
+   
     void Start()
     {
         btn = GetComponent<Button>();

@@ -12,7 +12,7 @@ using Unity.VisualScripting.FullSerializer;
 
 public class MainMenuBehaviour : MonoBehaviour
 {
-
+    public static MainMenuBehaviour Instance;
 
     [Header("Debug Options")]
     [SerializeField] bool isDebugging;
@@ -58,7 +58,7 @@ public class MainMenuBehaviour : MonoBehaviour
     [SerializeField] GameObject[] cards;
 
     [SerializeField] GameObject mainMenuCanvas;
-    [SerializeField] GameObject[] levelMenuCanvas;
+    [SerializeField] public  GameObject[] levelMenuCanvas;
     [SerializeField] ProceduralImage backGroundAttachment;
 
 
@@ -68,11 +68,22 @@ public class MainMenuBehaviour : MonoBehaviour
 
     Animator settingsPanelAnimator;
     Animator quitPanelAnimator;
-    private LevelSelectDecider.ArithmeticLevel selectLevel;
+    [HideInInspector]public LevelSelectDecider.ArithmeticLevel selectLevel;
+    [SerializeField] public GameObject multiplyAll, divisioAll, addAll, subtractAll;
+    [SerializeField] public GameObject[] multiplyLevels;
 
+    void Awake()
+    {
+        Instance = this;
+    }
     void Start()
     {
         if (isDebugging) return;
+        foreach (GameObject item in multiplyLevels)
+        {
+            multiplyAll.SetActive(false);
+            item.SetActive(false);
+        }
         confettiPS.gameObject.SetActive(false);
         mainMenuPanel.SetActive(true);
         gameMenuPanel.SetActive(false);
@@ -132,7 +143,7 @@ public class MainMenuBehaviour : MonoBehaviour
     public void BackButtonClicked()
     {
 
-        fadeScreen.gameObject.SetActive(true);
+        //fadeScreen.gameObject.SetActive(true);
         fadeScreen.raycastTarget = true;
 
         for (int i = 0; i < cards.Length; i++)
@@ -187,8 +198,8 @@ public class MainMenuBehaviour : MonoBehaviour
             yield return null;
 
         }
-        fadeScreen.gameObject.SetActive(false);
-        LevelPanelSelectorPanel();
+        fadeScreen.raycastTarget = false;
+          StartCoroutine(LevelPanelSelectorPanel());
 
 
 
@@ -277,7 +288,8 @@ public class MainMenuBehaviour : MonoBehaviour
             cards[i].transform.DOScale(Vector3.one, .4f).SetEase(Ease.InOutFlash);
 
         }
-        fadeScreen.gameObject.SetActive(false);
+        //fadeScreen.gameObject.SetActive(false);
+        fadeScreen.raycastTarget = false;
         foreach (GameObject card in cards)
         {
 
@@ -295,7 +307,8 @@ public class MainMenuBehaviour : MonoBehaviour
 
     IEnumerator StartLevelScreenFadeIn()
     {
-        fadeScreen.gameObject.SetActive(true);
+        //fadeScreen.gameObject.SetActive(true);
+        fadeScreen.raycastTarget = true;
         float t = 0f;
 
         while (t < 1)
@@ -360,7 +373,8 @@ public class MainMenuBehaviour : MonoBehaviour
 
         }
 
-        fadeScreen.gameObject.SetActive(false);
+        // fadeScreen.gameObject.SetActive(false);
+        fadeScreen.raycastTarget = false;
 
         confettiPS.gameObject.SetActive(false);
 

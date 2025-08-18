@@ -14,7 +14,9 @@ public class StartLevelInit : MonoBehaviour
     [SerializeField] float fadeSpeed;
     [SerializeField] Transform canvas;
     [SerializeField] TextMeshProUGUI levelText;
+    [SerializeField] TextMeshProUGUI objective_Txt;
     Animator anim;
+    
 
 
     void OnEnable()
@@ -23,8 +25,8 @@ public class StartLevelInit : MonoBehaviour
         fadeScreen = FindFirstObjectByType<FadeScreen>().GetComponent<ProceduralImage>();
         fadeScreen.color = new Color(fadeScreen.color.r, fadeScreen.color.g, fadeScreen.color.b, 0f);
         anim = GetComponent<Animator>();
-         
-    
+
+
     }
 
     /// <summary>
@@ -33,23 +35,78 @@ public class StartLevelInit : MonoBehaviour
     /// </summary>
     void Start()
     {
-        levelText.text = "Level " + MultiplyLevel.Instance.levelNum;
+
+        // levelText.text = "Level " + LevelNumberSelector.Instance.commonLevelNum;
+        if (LevelNumberSelector.Instance.commonLevelNum == 1)
+        {
+            levelText.text = "BASICS";
+            objective_Txt.text = "Let's Test Your Skills.Try to Earn Three Stars";
+        }
+        else if (LevelNumberSelector.Instance.commonLevelNum == 2)
+        {
+            levelText.text = "BEGINNER";
+            objective_Txt.text = "Ohh! So You Think You Are Above Basic.Let's Check it.";
+        }
+        else if (LevelNumberSelector.Instance.commonLevelNum == 3)
+        {
+            levelText.text = "INTERMIDIATE";
+            objective_Txt.text = "If You Are Not A Beginner.Then Check Your Skills Here.";
+        }
+        else if (LevelNumberSelector.Instance.commonLevelNum == 4)
+        {
+            levelText.text = "EXPERT";
+            objective_Txt.text = "You Love Challenges.Try One Here";
+        }
         
+
     }
     public void WhichLevelToStart()
     {
-        leveltoStart = MultiplyLevel.Instance.levelNum;
-        fadeScreen.transform.SetParent(FindFirstObjectByType<MultiplyLevel>().transform);
-        StartCoroutine(FadeIntoGame());
-        anim.Play("Close");
-        fadeScreen.raycastTarget = true;
+
+        if (MainMenuBehaviour.Instance.selectLevel == LevelSelectDecider.ArithmeticLevel.MultiplyLevel)
+        {
+            Debug.Log("Its Multi");
+            leveltoStart = LevelNumberSelector.Instance.multiLevelNum;
+            fadeScreen.transform.SetParent(FindFirstObjectByType<LevelNumberSelector>().transform);
+            StartCoroutine(FadeIntoGame());
+            anim.Play("Close");
+            fadeScreen.raycastTarget = true;
+        }
+        else if (MainMenuBehaviour.Instance.selectLevel == LevelSelectDecider.ArithmeticLevel.AdditionLevel)
+        {
+            Debug.Log("Its Add");
+            leveltoStart = LevelNumberSelector.Instance.addLevelNum;
+            fadeScreen.transform.SetParent(FindFirstObjectByType<LevelNumberSelector>().transform);
+            StartCoroutine(FadeIntoGame());
+            anim.Play("Close");
+            fadeScreen.raycastTarget = true;
+        }
+        else if (MainMenuBehaviour.Instance.selectLevel == LevelSelectDecider.ArithmeticLevel.SubtractionLevel)
+        {
+            Debug.Log("Its Sub");
+            leveltoStart = LevelNumberSelector.Instance.subtractLevelNum;
+            fadeScreen.transform.SetParent(FindFirstObjectByType<LevelNumberSelector>().transform);
+            StartCoroutine(FadeIntoGame());
+            anim.Play("Close");
+            fadeScreen.raycastTarget = true;
+        }
+        else if (MainMenuBehaviour.Instance.selectLevel == LevelSelectDecider.ArithmeticLevel.DivisionLevel)
+        {
+            Debug.Log("Its Div");
+            leveltoStart = LevelNumberSelector.Instance.divisionLevelNum;
+            fadeScreen.transform.SetParent(FindFirstObjectByType<LevelNumberSelector>().transform);
+            StartCoroutine(FadeIntoGame());
+            anim.Play("Close");
+            fadeScreen.raycastTarget = true;
+        }
+
     }
 
 
 
     IEnumerator FadeIntoGame()
     {
-             fadeScreen.transform.SetParent(FindFirstObjectByType<Canvas>().transform);
+        fadeScreen.transform.SetParent(FindFirstObjectByType<Canvas>().transform);
         float t = 0f;
 
         while (t < 1)
@@ -71,22 +128,36 @@ public class StartLevelInit : MonoBehaviour
 
     IEnumerator FadeIntoGameLevel()
     {
-    GameObject backGround = GameObject.Find("PopupBackground");
+        GameObject backGround = GameObject.Find("PopupBackground");
         Destroy(backGround, 1.0f);
-        if (leveltoStart == 1)
-        {
-            Debug.Log("Let's Start Level 1 ");
-        }
-        if (leveltoStart == 2)
-        {
 
-            Debug.Log("Let's Start Level 2 ");
-        }
-        if (leveltoStart == 3)
+        if (MainMenuBehaviour.Instance.selectLevel == LevelSelectDecider.ArithmeticLevel.MultiplyLevel)
         {
+            MainMenuBehaviour.Instance.levelMenuCanvas[0].SetActive(false);
 
-            Debug.Log("Let's Start Level 3 ");
+            MultiLevelNumber();
+
         }
+        else if (MainMenuBehaviour.Instance.selectLevel == LevelSelectDecider.ArithmeticLevel.AdditionLevel)
+        {
+            MainMenuBehaviour.Instance.levelMenuCanvas[1].SetActive(false);
+            AdditionLevelNumber();
+
+        }
+        else if (MainMenuBehaviour.Instance.selectLevel == LevelSelectDecider.ArithmeticLevel.SubtractionLevel)
+        {
+            MainMenuBehaviour.Instance.levelMenuCanvas[2].SetActive(false);
+            SubtractionLevelNumber();
+
+        }
+
+        else if (MainMenuBehaviour.Instance.selectLevel == LevelSelectDecider.ArithmeticLevel.DivisionLevel)
+        {
+            MainMenuBehaviour.Instance.levelMenuCanvas[3].SetActive(false);
+            DivisionLevelNumber();
+        }
+
+
         yield return new WaitForSeconds(1f);
         float i = 0f;
 
@@ -106,10 +177,157 @@ public class StartLevelInit : MonoBehaviour
 
 
         fadeScreen.raycastTarget = false;
-    
+
         Destroy(gameObject, 1.0f);
 
     }
- 
- 
+
+    public void MultiLevelNumber()
+    {
+        switch (leveltoStart)
+        {
+            case 1:
+                Debug.Log("Let's Start Level 1 ");
+                MainMenuBehaviour.Instance.multiplyAll.SetActive(true);
+                MainMenuBehaviour.Instance.multiplyLevels[0].SetActive(true);
+                break;
+            case 2:
+                Debug.Log("Let's Start Level 2 ");
+                break;
+            case 3:
+                Debug.Log("Let's Start Level 3 ");
+                break;
+            case 4:
+                Debug.Log("Let's Start Level 4 ");
+                break;
+            case 5:
+                Debug.Log("Let's Start Level 5 ");
+                break;
+            case 6:
+                Debug.Log("Let's Start Level 6 ");
+                break;
+            case 7:
+                Debug.Log("Let's Start Level 7 ");
+                break;
+            case 8:
+                Debug.Log("Let's Start Level 8 ");
+                break;
+            case 9:
+                Debug.Log("Let's Start Level 9 ");
+                break;
+            case 10:
+                Debug.Log("Let's Start Level 10 ");
+                break;
+        }
+    }
+
+    public void AdditionLevelNumber()
+    {
+        switch (leveltoStart)
+        {
+            case 1:
+                Debug.Log("Let's Start Level 1 ");
+                break;
+            case 2:
+                Debug.Log("Let's Start Level 2 ");
+                break;
+            case 3:
+                Debug.Log("Let's Start Level 3 ");
+                break;
+            case 4:
+                Debug.Log("Let's Start Level 4 ");
+                break;
+            case 5:
+                Debug.Log("Let's Start Level 5 ");
+                break;
+            case 6:
+                Debug.Log("Let's Start Level 6 ");
+                break;
+            case 7:
+                Debug.Log("Let's Start Level 7 ");
+                break;
+            case 8:
+                Debug.Log("Let's Start Level 8 ");
+                break;
+            case 9:
+                Debug.Log("Let's Start Level 9 ");
+                break;
+            case 10:
+                Debug.Log("Let's Start Level 10 ");
+                break;
+        }
+    }
+
+    public void SubtractionLevelNumber()
+    {
+        switch (leveltoStart)
+        {
+            case 1:
+                Debug.Log("Let's Start Level 1 ");
+                break;
+            case 2:
+                Debug.Log("Let's Start Level 2 ");
+                break;
+            case 3:
+                Debug.Log("Let's Start Level 3 ");
+                break;
+            case 4:
+                Debug.Log("Let's Start Level 4 ");
+                break;
+            case 5:
+                Debug.Log("Let's Start Level 5 ");
+                break;
+            case 6:
+                Debug.Log("Let's Start Level 6 ");
+                break;
+            case 7:
+                Debug.Log("Let's Start Level 7 ");
+                break;
+            case 8:
+                Debug.Log("Let's Start Level 8 ");
+                break;
+            case 9:
+                Debug.Log("Let's Start Level 9 ");
+                break;
+            case 10:
+                Debug.Log("Let's Start Level 10 ");
+                break;
+        }
+    }
+    public void DivisionLevelNumber()
+    {
+        switch (leveltoStart)
+        {
+            case 1:
+                Debug.Log("Let's Start Level 1 ");
+                break;
+            case 2:
+                Debug.Log("Let's Start Level 2 ");
+                break;
+            case 3:
+                Debug.Log("Let's Start Level 3 ");
+                break;
+            case 4:
+                Debug.Log("Let's Start Level 4 ");
+                break;
+            case 5:
+                Debug.Log("Let's Start Level 5 ");
+                break;
+            case 6:
+                Debug.Log("Let's Start Level 6 ");
+                break;
+            case 7:
+                Debug.Log("Let's Start Level 7 ");
+                break;
+            case 8:
+                Debug.Log("Let's Start Level 8 ");
+                break;
+            case 9:
+                Debug.Log("Let's Start Level 9 ");
+                break;
+            case 10:
+                Debug.Log("Let's Start Level 10 ");
+                break;
+        }
+    }
 }
