@@ -14,7 +14,7 @@ public class LevelDesigner : MonoBehaviour
     [SerializeField] TextMeshProUGUI txt_FirstNumber, txt_SecondNumber, txt_FinalAnswer;
     [SerializeField] int stars_Earn;
     [SerializeField] GameObject[] yellow_Starts;
-    [SerializeField] public  int stars;
+    [SerializeField] public int stars;
     [SerializeField] ParticleSystem particleSystem;
     [SerializeField] AudioSource scoreStarClip;
     [SerializeField] BalloonBehaviour[] balloonBehaviours;
@@ -34,7 +34,7 @@ public class LevelDesigner : MonoBehaviour
     public bool test;
 
     int correctIndex;
-     public LevelSelectDecider.ArithmeticLevel selectLevel;
+    public LevelSelectDecider.ArithmeticLevel selectLevel;
 
     void Awake()
     {
@@ -59,16 +59,16 @@ public class LevelDesigner : MonoBehaviour
             item.SetActive(false);
         }
         endGameWindow.SetActive(false);
-         foreach (BalloonBehaviour item in balloonBehaviours)
-            {
-                item.enabled = true;
-            }
+        foreach (BalloonBehaviour item in balloonBehaviours)
+        {
+            item.enabled = true;
+        }
     }
 
     void Update()
     {
         EndGameStars();
-       
+
     }
 
     void EndGameStars()
@@ -259,47 +259,59 @@ public class LevelDesigner : MonoBehaviour
 
     void GenerateQuestion()
     {
-        firstQuestionNumber = Random.Range(1, 10);
-        secondQuestionNumber = Random.Range(1, 11);
+        int a = 0, b = 0;
 
+        switch (selectLevel)
+        {
+            case LevelSelectDecider.ArithmeticLevel.AdditionLevel:
+                a = Random.Range(1, 11);   // 1..10
+                b = Random.Range(1, 11);   // 1..10
+                finalAnswerNumber = a + b;
+                break;
+
+            case LevelSelectDecider.ArithmeticLevel.SubtractionLevel:
+                a = Random.Range(2, 11);   // 2..10
+                b = Random.Range(1, a);    // ensure b < a
+                finalAnswerNumber = a - b;
+                break;
+
+            case LevelSelectDecider.ArithmeticLevel.MultiplyLevel:
+                a = Random.Range(1, 11);   // 1..10
+                b = Random.Range(1, 11);   // 1..10
+                finalAnswerNumber = a * b;
+                break;
+
+            case LevelSelectDecider.ArithmeticLevel.DivisionLevel:
+                b = Random.Range(1, 11);   // divisor (1..10)
+                finalAnswerNumber = Random.Range(1, 11); // quotient (1..10)
+                a = finalAnswerNumber * b; // dividend ensures no remainder
+                break;
+        }
+
+        firstQuestionNumber = a;
+        secondQuestionNumber = b;
+
+        // Update UI
         txt_FirstNumber.text = firstQuestionNumber.ToString();
         txt_SecondNumber.text = secondQuestionNumber.ToString();
-
-        if (selectLevel == LevelSelectDecider.ArithmeticLevel.MultiplyLevel)
-        {
-            finalAnswerNumber = firstQuestionNumber * secondQuestionNumber;
-            Debug.Log("This Is Multiply Level");
-        }
-        else if (selectLevel == LevelSelectDecider.ArithmeticLevel.AdditionLevel)
-        {
-            Debug.Log("This is Addition Level");
-            finalAnswerNumber = firstQuestionNumber + secondQuestionNumber;
-        }
-        else if (selectLevel == LevelSelectDecider.ArithmeticLevel.DivisionLevel)
-        {
-            Debug.Log("This is Division Level");
-            finalAnswerNumber = firstQuestionNumber / secondQuestionNumber;
-        }
-        else if (selectLevel == LevelSelectDecider.ArithmeticLevel.SubtractionLevel)
-        {
-            Debug.Log("This is Subtraction Level");
-            finalAnswerNumber = firstQuestionNumber - secondQuestionNumber;
-
-        }
-
     }
 
     void GenerateAnswers()
     {
-        // Clear first (optional)
-        foreach (var t in txt_AnswerGuessers) t.text = "";
+        // Reset answers
+        foreach (var t in txt_AnswerGuessers)
+        {
+            t.text = "";
+            var balloon = t.GetComponentInParent<BalloonBehaviour>();
+            if (balloon) balloon.isCorrectAnswer = false;
+        }
 
-        // Pick where the correct answer will go
+        // Place correct answer
         correctIndex = Random.Range(0, txt_AnswerGuessers.Length);
         txt_AnswerGuessers[correctIndex].text = finalAnswerNumber.ToString();
-        txt_AnswerGuessers[correctIndex].gameObject.transform.GetComponentInParent<BalloonBehaviour>().isCorrectAnswer = true;
+        txt_AnswerGuessers[correctIndex].GetComponentInParent<BalloonBehaviour>().isCorrectAnswer = true;
 
-        // Fill other slots with unique distractors
+        // Generate distractors
         var used = new HashSet<int> { finalAnswerNumber };
 
         for (int i = 0; i < txt_AnswerGuessers.Length; i++)
@@ -310,50 +322,81 @@ public class LevelDesigner : MonoBehaviour
             used.Add(distractor);
             txt_AnswerGuessers[i].text = distractor.ToString();
         }
-
-     
     }
 
-    // Generates a plausible wrong answer that isn't already used
     int GenerateDistractor(int correct, int a, int b, HashSet<int> used)
     {
-        // Try a handful of heuristics for believable mistakes
+        int pick = 0;
+
         for (int attempts = 0; attempts < 20; attempts++)
         {
-            int pick = 0;
-            int mode = Random.Range(0, 6);
-
-            switch (mode)
+            switch (selectLevel)
             {
-                case 0: pick = correct + Random.Range(-10, 11); break;          // near miss
-                case 1: pick = (a + 1) * b; break;                               // off-by-one factor
-                case 2: pick = a * (b + 1); break;
-                case 3: pick = (a - 1) * b; break;
-                case 4: pick = a * (b - 1); break;
-                case 5: pick = a + b; break;                                     // common mistake (add)
+                case LevelSelectDecider.ArithmeticLevel.AdditionLevel:
+                    {
+                        int mode = Random.Range(0, 3);
+                        switch (mode)
+                        {
+                            case 0: pick = correct + Random.Range(-3, 4); break; // near miss
+                            case 1: pick = (a + 1) + b; break;                 // off by one on a
+                            case 2: pick = a + (b + 1); break;                 // off by one on b
+                        }
+                        break;
+                    }
+
+                case LevelSelectDecider.ArithmeticLevel.SubtractionLevel:
+                    {
+                        int mode = Random.Range(0, 3);
+                        switch (mode)
+                        {
+                            case 0: pick = correct + Random.Range(-3, 4); break;
+                            case 1: pick = a + b; break;                         // mistake: added instead of subtracted
+                            case 2: pick = (a - (b + 1)); break;                 // off-by-one
+                        }
+                        break;
+                    }
+
+                case LevelSelectDecider.ArithmeticLevel.MultiplyLevel:
+                    {
+                        int mode = Random.Range(0, 4);
+                        switch (mode)
+                        {
+                            case 0: pick = correct + Random.Range(-10, 11); break; // near miss
+                            case 1: pick = (a + 1) * b; break;
+                            case 2: pick = a * (b + 1); break;
+                            case 3: pick = (a - 1) * b; break;
+                        }
+                        break;
+                    }
+
+                case LevelSelectDecider.ArithmeticLevel.DivisionLevel:
+                    {
+                        int mode = Random.Range(0, 3);
+                        switch (mode)
+                        {
+                            case 0: pick = correct + Random.Range(-2, 3); break; // near miss
+                            case 1: pick = a - b; break;                         // subtraction mistake
+                            case 2: pick = b; break;                             // confuse divisor with result
+                        }
+                        break;
+                    }
             }
 
-            // Clamp to sensible range and validate
-            if (pick < 1) continue;
-            if (pick == correct) continue;
-            if (used.Contains(pick)) continue;
-
-            return pick;
+            if (pick > 0 && pick != correct && !used.Contains(pick))
+                return pick;
         }
 
-        // Fallback: find the next unused integer near the correct answer
+        // fallback unique number
         int fallback = correct + 1;
-        while (fallback < 1000 && used.Contains(fallback)) fallback++;
+        while (used.Contains(fallback)) fallback++;
         return fallback;
     }
 
-    // Optional: call this to roll a new question+answers
     public void NextQuestion()
     {
         GenerateQuestion();
         GenerateAnswers();
     }
 
-    // Optional: getter if you need to check which index is correct
     public int GetCorrectIndex() => correctIndex;
 }
