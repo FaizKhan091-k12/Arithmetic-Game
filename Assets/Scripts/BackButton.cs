@@ -5,13 +5,20 @@ using UnityEngine.UI.ProceduralImage;
 
 public class BackButton : MonoBehaviour
 {
+    public static BackButton Instance;
     [SerializeField] Button backBtn;
     [SerializeField] ProceduralImage fadeScreen;
     [SerializeField] float fadeTimer = 1f;
     [SerializeField] GameObject[] currentLevel;
     [SerializeField] GameObject add,multi,div,sub;
-    [HideInInspector] LevelSelectDecider.ArithmeticLevel arithmeticLevel;
 
+    public bool isAdd, isSub, isMulti, isDiv;
+
+
+    void Awake()
+    {
+        Instance = this;
+    }
     public void OnBackBtnClicked()
     {
         StartCoroutine(FadeIn());
@@ -45,28 +52,28 @@ public class BackButton : MonoBehaviour
         {
             item.SetActive(false);  
         }
-        if (arithmeticLevel == LevelSelectDecider.ArithmeticLevel.AdditionLevel)
+        if (isAdd)
         {
             add.SetActive(true);
             multi.SetActive(false);
             div.SetActive(false);
             sub.SetActive(false);
         }
-        else if (arithmeticLevel == LevelSelectDecider.ArithmeticLevel.MultiplyLevel)
+        else if (isMulti)
         {
             multi.SetActive(true);
             add.SetActive(false);
             div.SetActive(false);
             sub.SetActive(false);
         }
-        else if (arithmeticLevel == LevelSelectDecider.ArithmeticLevel.DivisionLevel)
+        else if (isDiv)
         {
             multi.SetActive(false);
             add.SetActive(false);
             div.SetActive(true);
             sub.SetActive(false);
         }
-        else if (arithmeticLevel == LevelSelectDecider.ArithmeticLevel.SubtractionLevel)
+        else if (isSub)
         {
             multi.SetActive(false);
             add.SetActive(false);

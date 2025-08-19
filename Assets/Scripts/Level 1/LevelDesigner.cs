@@ -35,6 +35,7 @@ public class LevelDesigner : MonoBehaviour
 
     int correctIndex;
     public LevelSelectDecider.ArithmeticLevel selectLevel;
+    [SerializeField] public GameObject handIconAnim;
 
     void Awake()
     {
@@ -63,6 +64,7 @@ public class LevelDesigner : MonoBehaviour
         {
             item.enabled = true;
         }
+        handIconAnim.SetActive(true);
     }
 
     void Update()

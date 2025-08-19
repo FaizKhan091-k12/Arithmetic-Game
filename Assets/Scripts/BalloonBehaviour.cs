@@ -74,6 +74,12 @@ public class BalloonBehaviour : MonoBehaviour, IBeginDragHandler, IDragHandler, 
 
     public void OnBeginDrag(PointerEventData eventData)
     {
+
+        if (LevelDesigner.Instance.handIconAnim.activeInHierarchy)
+        {
+
+            LevelDesigner.Instance.handIconAnim.SetActive(false);
+        }
         rect.SetAsLastSibling();
 
         // capture grab offset
@@ -166,6 +172,7 @@ public class BalloonBehaviour : MonoBehaviour, IBeginDragHandler, IDragHandler, 
         rect.transform.SetParent(balloon_Parent.transform);
         rect.transform.localPosition = Vector3.zero;
         rect.transform.localScale = Vector3.one;
+
 
     }
 

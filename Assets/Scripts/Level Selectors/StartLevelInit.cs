@@ -184,15 +184,29 @@ public class StartLevelInit : MonoBehaviour
 
     public void MultiLevelNumber()
     {
+        BackButton.Instance.isMulti = true;
+        BackButton.Instance.isAdd = false;
+        BackButton.Instance.isDiv = false;
+        BackButton.Instance.isSub = false;
         switch (leveltoStart)
         {
             case 1:
-                Debug.Log("Let's Start Level 1 ");
+                Debug.Log("Let's Start Level 1 multiply ");
                 MainMenuBehaviour.Instance.multiplyAll.SetActive(true);
+                foreach (GameObject item in MainMenuBehaviour.Instance.multiplyLevels)
+                {
+                    item.SetActive(false);
+                }
                 MainMenuBehaviour.Instance.multiplyLevels[0].SetActive(true);
                 break;
             case 2:
-                Debug.Log("Let's Start Level 2 ");
+                Debug.Log("Let's Start Level 2 multiply");
+                MainMenuBehaviour.Instance.multiplyAll.SetActive(true);
+                foreach (GameObject item in MainMenuBehaviour.Instance.multiplyLevels)
+                {
+                    item.SetActive(false);
+                }
+                MainMenuBehaviour.Instance.multiplyLevels[1].SetActive(true);
                 break;
             case 3:
                 Debug.Log("Let's Start Level 3 ");
@@ -223,6 +237,10 @@ public class StartLevelInit : MonoBehaviour
 
     public void AdditionLevelNumber()
     {
+        BackButton.Instance.isMulti = false;
+        BackButton.Instance.isAdd = true;
+        BackButton.Instance.isDiv = false;
+        BackButton.Instance.isSub = false;
         switch (leveltoStart)
         {
             case 1:
@@ -262,6 +280,10 @@ public class StartLevelInit : MonoBehaviour
 
     public void SubtractionLevelNumber()
     {
+        BackButton.Instance.isMulti = false;
+        BackButton.Instance.isAdd = false;
+        BackButton.Instance.isDiv = false;
+        BackButton.Instance.isSub = true;
         switch (leveltoStart)
         {
             case 1:
@@ -300,6 +322,10 @@ public class StartLevelInit : MonoBehaviour
     }
     public void DivisionLevelNumber()
     {
+        BackButton.Instance.isMulti = false;
+        BackButton.Instance.isAdd = false;
+        BackButton.Instance.isDiv = true;
+        BackButton.Instance.isSub = false;
         switch (leveltoStart)
         {
             case 1:
