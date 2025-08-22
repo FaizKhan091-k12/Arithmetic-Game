@@ -47,14 +47,8 @@ public class LevelDesigner : MonoBehaviour
         NextQuestion();
         test = false;
         stars = 0;
-        foreach (GameObject item in end_YellowStars)
-        {
-            item.SetActive(false);
-        }
-        foreach (GameObject item in basic_YellowStars)
-        {
-            item.SetActive(false);
-        }
+ 
+      
         foreach (GameObject item in score_Board_Stars)
         {
             item.SetActive(false);

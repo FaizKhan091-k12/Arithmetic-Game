@@ -245,10 +245,21 @@ public class StartLevelInit : MonoBehaviour
         {
             case 1:
                 Debug.Log("Let's Start Level 1 Add");
-                MainMenuBehaviour.Instance.additionAll.SetActive(true);
+                         MainMenuBehaviour.Instance.additionAll.SetActive(true);
+                foreach (GameObject item in MainMenuBehaviour.Instance.AdditionLevels)
+                {
+                    item.SetActive(false);
+                }
                 MainMenuBehaviour.Instance.AdditionLevels[0].SetActive(true);
                 break;
             case 2:
+
+                        MainMenuBehaviour.Instance.additionAll.SetActive(true);
+                foreach (GameObject item in MainMenuBehaviour.Instance.AdditionLevels)
+                {
+                    item.SetActive(false);
+                }
+                MainMenuBehaviour.Instance.AdditionLevels[1].SetActive(true);
                 Debug.Log("Let's Start Level 2 ");
                 break;
             case 3:
