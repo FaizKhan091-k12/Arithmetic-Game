@@ -16,8 +16,15 @@ public class TimesTableGridPopulator : MonoBehaviour
     public enum InnerCellsMode { Blank, Products }
     public enum Operation { Addition, Subtraction, Multiplication, Division }
 
-    // NEW: choose which part of the equation the player guesses
-    public enum GuessField { First, Second, Final }
+    // ✅ Multiple selectable fields
+    [System.Flags]
+    public enum GuessField
+    {
+        None   = 0,
+        First  = 1 << 0,
+        Second = 1 << 1,
+        Final  = 1 << 2
+    }
 
     [Header("Grid Setup")]
     [SerializeField] private RectTransform gridParent;
@@ -28,7 +35,7 @@ public class TimesTableGridPopulator : MonoBehaviour
     [SerializeField] private Operation operation = Operation.Addition;
 
     [Header("Equation Setup")]
-    [Tooltip("Which number should be hidden with '?' for the player to guess.")]
+    [Tooltip("Which number(s) should be hidden with '?' for the player to guess.")]
     [SerializeField] private GuessField guessField = GuessField.Final;
 
     [Header("Colors")]
@@ -56,49 +63,37 @@ public class TimesTableGridPopulator : MonoBehaviour
     [SerializeField] private TMP_Text opText;
     [SerializeField] private TMP_Text secondNumberText;
     [SerializeField] private TMP_Text equalsText;
-    [SerializeField] private TMP_Text finalNumberText; // The third slot
+    [SerializeField] private TMP_Text finalNumberText;
 
     [Header("Answer Rules")]
-    [Tooltip("For + and ×, accept (row,col) and (col,row). For − and ÷ this is ignored.")]
     [SerializeField] private bool acceptSymmetricPair = true;
-
-    [Tooltip("Accept ANY cell whose value equals the target value (ignored for Division).")]
     [SerializeField] private bool acceptAnyValueMatch = false;
 
     // cache
-    private Graphic[]      cellGraphics;
-    private TMP_Text[]     cellTexts;
+    private Graphic[] cellGraphics;
+    private TMP_Text[] cellTexts;
     private RectTransform[] cellRects;
 
     private readonly List<CellRef> hiddenCells = new();
     private Coroutine jiggleCo;
 
-    // current question (refers to the *intersection* picked)
-    private int targetRow, targetCol, targetValue;  // sum/diff/product; for ÷ we store product here
-    private int targetQuotient;                     // for ÷ only
+    private int targetRow, targetCol, targetValue;
+    private int targetQuotient;
 
-    // hover state
     private int hoverRow = 0, hoverCol = 0;
 
-    private int Rows => maxFactor + 1; // includes header row
-    private int Cols => maxFactor + 1; // includes header col
+    private int Rows => maxFactor + 1;
+    private int Cols => maxFactor + 1;
+
+    // Put this anywhere in the class (e.g., under CalcValue)
+
+
 
     private struct CellRef
     {
         public RectTransform rt;
         public TMP_Text txt;
         public int r, c;
-        public int Value(Operation op)
-        {
-            return op switch
-            {
-                Operation.Addition       => r + c,
-                Operation.Subtraction    => r - c,
-                Operation.Multiplication => r * c,
-                Operation.Division       => (c != 0) ? r / c : 0,
-                _ => 0
-            };
-        }
     }
 
     void Reset() { gridParent = GetComponent<RectTransform>(); }
@@ -139,47 +134,31 @@ public class TimesTableGridPopulator : MonoBehaviour
         if (jiggleCo != null) { StopCoroutine(jiggleCo); jiggleCo = null; }
         KillAllTweensAndResetScale();
     }
-private bool IsCorrectPick(int r, int c)
+
+    private bool IsCorrectPick(int r, int c)
+    {
+        switch (operation)
+        {
+            case Operation.Addition:       return r + c == targetRow + targetCol;
+            case Operation.Multiplication: return r * c == targetRow * targetCol;
+            case Operation.Subtraction:    return r - c == targetRow - targetCol;
+            case Operation.Division:
+                if (c == 0) return false;
+                return (r / c == targetRow / targetCol && r % c == 0);
+            default: return (r == targetRow && c == targetCol);
+        }
+    }
+private int GridDisplayValue(int r, int c)
 {
     switch (operation)
     {
-        case Operation.Addition:
-            {
-                int sum = r + c;
-                int targetSum = targetRow + targetCol;
-                return sum == targetSum;
-            }
-
-        case Operation.Multiplication:
-            {
-                int product = r * c;
-                int targetProduct = targetRow * targetCol;
-                return product == targetProduct;
-            }
-
-        case Operation.Subtraction:
-            {
-                int diff = r - c;
-                int targetDiff = targetRow - targetCol;
-                return diff == targetDiff;
-            }
-
-        case Operation.Division:
-            {
-                if (c == 0) return false; // avoid div by zero
-                int quotient = r / c;
-                int remainder = r % c;
-                int targetQuotient = targetRow / targetCol;
-
-                // only accept if quotient matches and remainder is 0
-                return (quotient == targetQuotient && remainder == 0);
-            }
-
-        default:
-            return (r == targetRow && c == targetCol);
+        case Operation.Addition:        return r + c;   // <-- show sums on Addition
+        case Operation.Subtraction:     return r - c;   // optional, keeps things consistent
+        case Operation.Multiplication:  return r * c;
+        case Operation.Division:        return r * c;   // keep product table for Division
+        default:                        return r * c;
     }
 }
-
     public void Populate()
     {
         hiddenCells.Clear();
@@ -206,7 +185,8 @@ private bool IsCorrectPick(int r, int c)
                     else if (r == 0)                    txt.text = c.ToString();
                     else if (c == 0)                    txt.text = r.ToString();
                     else if (innerMode == InnerCellsMode.Products)
-                        txt.text = DisplayCellValue(r, c).ToString();
+                       txt.text = GridDisplayValue(r, c).ToString();
+
                     else
                         txt.text = "";
                 }
@@ -225,21 +205,6 @@ private bool IsCorrectPick(int r, int c)
         SetOperatorSymbol();
         AskNextQuestion();
     }
-
-    private int CellValue(int r, int c)
-    {
-        return operation switch
-        {
-            Operation.Addition       => r + c,
-            Operation.Subtraction    => r - c,
-            Operation.Multiplication => r * c,
-            Operation.Division       => (c != 0) ? r / c : 0,
-            _ => 0
-        };
-    }
-
-    // Grid shows multiplication table numbers when revealed/peeked (consistent across modes).
-    private int DisplayCellValue(int r, int c) => (r * c);
 
     private string Symbol()
     {
@@ -267,10 +232,8 @@ private bool IsCorrectPick(int r, int c)
             return;
         }
 
-        // Pick a hidden cell
         var cell = hiddenCells[Random.Range(0, hiddenCells.Count)];
 
-        // Ensure division is clean (integer quotient)
         if (operation == Operation.Division)
         {
             var candidates = hiddenCells.FindAll(h => h.r % h.c == 0);
@@ -282,25 +245,25 @@ private bool IsCorrectPick(int r, int c)
 
         if (operation == Operation.Division)
         {
-            targetQuotient = targetRow / targetCol; // integer
-            targetValue    = targetRow * targetCol; // product (for grid display only)
+            targetQuotient = targetRow / targetCol;
+            targetValue    = targetRow * targetCol;
 
             SetEquationTextsWithQuestion(
-                first: targetRow.ToString(),
-                second: targetCol.ToString(),
-                final: targetQuotient.ToString(),
-                whichToHide: guessField
+                targetRow.ToString(),
+                targetCol.ToString(),
+                targetQuotient.ToString(),
+                guessField
             );
         }
         else
         {
-            targetValue = CellValue(targetRow, targetCol);
+            targetValue = CalcValue(targetRow, targetCol);
 
             SetEquationTextsWithQuestion(
-                first: targetRow.ToString(),
-                second: targetCol.ToString(),
-                final: targetValue.ToString(),
-                whichToHide: guessField
+                targetRow.ToString(),
+                targetCol.ToString(),
+                targetValue.ToString(),
+                guessField
             );
         }
 
@@ -308,65 +271,75 @@ private bool IsCorrectPick(int r, int c)
         RefreshColors();
     }
 
-    // Helper to assign texts and put "?" in the chosen slot
+    private int CalcValue(int r, int c)
+    {
+        return operation switch
+        {
+            Operation.Addition       => r + c,
+            Operation.Subtraction    => r - c,
+            Operation.Multiplication => r * c,
+            Operation.Division       => (c != 0) ? r / c : 0,
+            _ => 0
+        };
+    }
+
     private void SetEquationTextsWithQuestion(string first, string second, string final, GuessField whichToHide)
     {
         if (opText)     opText.text = Symbol();
         if (equalsText) equalsText.text = "=";
 
-        if (firstNumberText)  firstNumberText.text  = (whichToHide == GuessField.First)  ? "?" : first;
-        if (secondNumberText) secondNumberText.text = (whichToHide == GuessField.Second) ? "?" : second;
-        if (finalNumberText)  finalNumberText.text  = (whichToHide == GuessField.Final)  ? "?" : final;
+        if (firstNumberText)
+            firstNumberText.text = whichToHide.HasFlag(GuessField.First) ? "?" : first;
+        if (secondNumberText)
+            secondNumberText.text = whichToHide.HasFlag(GuessField.Second) ? "?" : second;
+        if (finalNumberText)
+            finalNumberText.text = whichToHide.HasFlag(GuessField.Final) ? "?" : final;
     }
 
-    // ============ Clicks ============
-   public bool OnCellClicked(int r, int c, RectTransform rt)
-{
-    if (clickSound) clickSound.Play();
-
-    int idx = Index(r, c);
-    var txt = cellTexts[idx];
-
-    bool correct = IsCorrectPick(r, c);
-
-    if (correct)
+    public bool OnCellClicked(int r, int c, RectTransform rt)
     {
-        // Fill the "?" slot with the correct number
-        if (operation == Operation.Division)
+        if (clickSound) clickSound.Play();
+
+        int idx = Index(r, c);
+        var txt = cellTexts[idx];
+
+        bool correct = IsCorrectPick(r, c);
+
+        if (correct)
         {
-            if (guessField == GuessField.First && firstNumberText)
-                firstNumberText.text = r.ToString();
-            if (guessField == GuessField.Second && secondNumberText)
-                secondNumberText.text = c.ToString();
-            if (guessField == GuessField.Final && finalNumberText)
-                finalNumberText.text = (r / c).ToString();
+            if (operation == Operation.Division)
+            {
+                if (guessField.HasFlag(GuessField.First) && firstNumberText)
+                    firstNumberText.text = r.ToString();
+                if (guessField.HasFlag(GuessField.Second) && secondNumberText)
+                    secondNumberText.text = c.ToString();
+                if (guessField.HasFlag(GuessField.Final) && finalNumberText)
+                    finalNumberText.text = (r / c).ToString();
+            }
+            else
+            {
+                if (guessField.HasFlag(GuessField.First) && firstNumberText)
+                    firstNumberText.text = r.ToString();
+                if (guessField.HasFlag(GuessField.Second) && secondNumberText)
+                    secondNumberText.text = c.ToString();
+                if (guessField.HasFlag(GuessField.Final) && finalNumberText)
+                    finalNumberText.text = CalcValue(r, c).ToString();
+            }
+
+            RevealCellPermanently(r, c, txt, rt);
+
+            hiddenCells.RemoveAll(cell => cell.r == r && cell.c == c);
+
+            starMeter?.AddCorrect();
+            StartCoroutine(NextQuestionAfterDelay(0.35f));
+            return true;
         }
         else
         {
-            if (guessField == GuessField.First && firstNumberText)
-                firstNumberText.text = r.ToString();
-            if (guessField == GuessField.Second && secondNumberText)
-                secondNumberText.text = c.ToString();
-            if (guessField == GuessField.Final && finalNumberText)
-                finalNumberText.text = CellValue(r, c).ToString();
+            StartCoroutine(PeekAndHide(r, c, txt, rt));
+            return false;
         }
-
-        RevealCellPermanently(r, c, txt, rt);
-
-        hiddenCells.RemoveAll(cell => cell.r == r && cell.c == c);
-
-        starMeter?.AddCorrect();
-
-        StartCoroutine(NextQuestionAfterDelay(0.35f));
-        return true;
     }
-    else
-    {
-        StartCoroutine(PeekAndHide(r, c, txt, rt));
-        return false;
-    }
-}
-
 
     private IEnumerator NextQuestionAfterDelay(float delay)
     {
@@ -378,7 +351,8 @@ private bool IsCorrectPick(int r, int c)
     {
         if (!txt || !rt) return;
 
-        txt.text = DisplayCellValue(r, c).ToString(); // product inside the grid
+        txt.text = GridDisplayValue(r, c).ToString();
+
 
         rt.DOKill(true);
         rt.localScale = Vector3.one;
@@ -395,7 +369,8 @@ private bool IsCorrectPick(int r, int c)
     {
         if (!txt || !rt) yield break;
 
-        txt.text = DisplayCellValue(r, c).ToString();
+        txt.text = GridDisplayValue(r, c).ToString();
+
         rt.DOKill(true);
         rt.localScale = Vector3.one;
 
@@ -403,14 +378,12 @@ private bool IsCorrectPick(int r, int c)
         yield return rt.DOScaleY(1f, 0.12f).SetEase(Ease.OutQuad).WaitForCompletion();
         yield return rt.DOPunchScale(Vector3.one * 0.08f, 0.15f, 8).SetEase(Ease.OutQuad).WaitForCompletion();
 
-        // hide again
         txt.text = "";
         yield return rt.DOScaleY(0f, 0.08f).SetEase(Ease.InQuad).WaitForCompletion();
         yield return rt.DOScaleY(1f, 0.10f).SetEase(Ease.OutQuad).WaitForCompletion();
         rt.localScale = Vector3.one;
     }
 
-    // ============ Hover ============
     public void OnHoverEnter(int r, int c)
     {
         hoverRow = r; hoverCol = c;
@@ -424,7 +397,6 @@ private bool IsCorrectPick(int r, int c)
 
     private void RefreshColors()
     {
-        // reset
         for (int rr = 0; rr < Rows; rr++)
             for (int cc = 0; cc < Cols; cc++)
             {
@@ -433,12 +405,10 @@ private bool IsCorrectPick(int r, int c)
                 if (cellGraphics[idx]) cellGraphics[idx].color = isHeader ? headerColor : bodyColor;
             }
 
-        // target cross
         if (targetRow > 0 && targetCol > 0)
         {
             PaintCross(targetRow, targetCol, targetColor);
 
-            // symmetric for + and × only
             if (acceptSymmetricPair &&
                 (operation == Operation.Addition || operation == Operation.Multiplication) &&
                 targetRow != targetCol)
@@ -447,7 +417,6 @@ private bool IsCorrectPick(int r, int c)
             }
         }
 
-        // hover cross
         if (hoverRow > 0 && hoverCol > 0)
             PaintCross(hoverRow, hoverCol, hoverColor);
     }
@@ -466,7 +435,6 @@ private bool IsCorrectPick(int r, int c)
         }
     }
 
-    // ----------------- Jiggle -----------------
     private IEnumerator JiggleLoop()
     {
         while (true)
