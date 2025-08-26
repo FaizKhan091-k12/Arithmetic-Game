@@ -10,6 +10,7 @@ public class TimesTableGridPopulator : MonoBehaviour
     [Header("Stars")]
     [SerializeField] private StarMeter starMeter;
 
+    public float answerDelay = 0.35f;
     public static TimesTableGridPopulator Instance;
     public AudioSource clickSound;
 
@@ -85,6 +86,8 @@ public class TimesTableGridPopulator : MonoBehaviour
     private int Rows => maxFactor + 1;
     private int Cols => maxFactor + 1;
 
+    public int cellText_Size;
+
     // Put this anywhere in the class (e.g., under CalcValue)
 
 
@@ -135,19 +138,32 @@ public class TimesTableGridPopulator : MonoBehaviour
         KillAllTweensAndResetScale();
     }
 
-    private bool IsCorrectPick(int r, int c)
+private bool IsCorrectPick(int r, int c)
+{
+    switch (operation)
     {
-        switch (operation)
-        {
-            case Operation.Addition:       return r + c == targetRow + targetCol;
-            case Operation.Multiplication: return r * c == targetRow * targetCol;
-            case Operation.Subtraction:    return r - c == targetRow - targetCol;
-            case Operation.Division:
-                if (c == 0) return false;
-                return (r / c == targetRow / targetCol && r % c == 0);
-            default: return (r == targetRow && c == targetCol);
-        }
+        case Operation.Addition:
+            if (acceptSymmetricPair)
+                return (r == targetRow && c == targetCol) || (r == targetCol && c == targetRow);
+            return (r == targetRow && c == targetCol);
+
+        case Operation.Multiplication:
+            if (acceptSymmetricPair)
+                return (r == targetRow && c == targetCol) || (r == targetCol && c == targetRow);
+            return (r == targetRow && c == targetCol);
+
+        case Operation.Subtraction:
+            return (r == targetRow && c == targetCol);
+
+        case Operation.Division:
+            if (c == 0) return false;
+            return (r / c == targetRow / targetCol && r % c == 0);
+
+        default:
+            return (r == targetRow && c == targetCol);
     }
+}
+
 private int GridDisplayValue(int r, int c)
 {
     switch (operation)
@@ -170,6 +186,7 @@ private int GridDisplayValue(int r, int c)
                 int idx = Index(r, c);
                 var g   = cellGraphics[idx];
                 var txt = cellTexts[idx];
+                cellTexts[idx].fontSize = cellText_Size;
                 var rt  = cellRects[idx];
 
                 if (rt) { rt.DOKill(true); rt.localScale = Vector3.one; }
@@ -331,7 +348,7 @@ private int GridDisplayValue(int r, int c)
             hiddenCells.RemoveAll(cell => cell.r == r && cell.c == c);
 
             starMeter?.AddCorrect();
-            StartCoroutine(NextQuestionAfterDelay(0.35f));
+            StartCoroutine(NextQuestionAfterDelay(answerDelay));
             return true;
         }
         else

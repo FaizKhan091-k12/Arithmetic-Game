@@ -49,7 +49,7 @@ public class StartLevelInit : MonoBehaviour
         }
         else if (LevelNumberSelector.Instance.commonLevelNum == 3)
         {
-            levelText.text = "INTERMIDIATE";
+            levelText.text = "EXPERT";
             objective_Txt.text = "If You Are Not A Beginner.Then Check Your Skills Here.";
         }
         else if (LevelNumberSelector.Instance.commonLevelNum == 4)
@@ -209,7 +209,13 @@ public class StartLevelInit : MonoBehaviour
                 MainMenuBehaviour.Instance.multiplyLevels[1].SetActive(true);
                 break;
             case 3:
-                Debug.Log("Let's Start Level 3 ");
+                   Debug.Log("Let's Start Level 3 multiply");
+                MainMenuBehaviour.Instance.multiplyAll.SetActive(true);
+                foreach (GameObject item in MainMenuBehaviour.Instance.multiplyLevels)
+                {
+                    item.SetActive(false);
+                }
+                MainMenuBehaviour.Instance.multiplyLevels[2].SetActive(true);
                 break;
             case 4:
                 Debug.Log("Let's Start Level 4 ");
@@ -260,10 +266,16 @@ public class StartLevelInit : MonoBehaviour
                     item.SetActive(false);
                 }
                 MainMenuBehaviour.Instance.AdditionLevels[1].SetActive(true);
-                Debug.Log("Let's Start Level 2 ");
+                Debug.Log("Let's Start Level 2 Add ");
                 break;
             case 3:
-                Debug.Log("Let's Start Level 3 ");
+                   MainMenuBehaviour.Instance.additionAll.SetActive(true);
+                foreach (GameObject item in MainMenuBehaviour.Instance.AdditionLevels)
+                {
+                    item.SetActive(false);
+                }
+                MainMenuBehaviour.Instance.AdditionLevels[2].SetActive(true);
+                Debug.Log("Let's Start Level 2 Add ");
                 break;
             case 4:
                 Debug.Log("Let's Start Level 4 ");
@@ -307,7 +319,7 @@ public class StartLevelInit : MonoBehaviour
                 MainMenuBehaviour.Instance.SubtractionLevels[0].SetActive(true);
                 break;
             case 2:
-                Debug.Log("Let's Start Level 2 ");
+                Debug.Log("Let's Start Level 2 Subtraction ");
                 MainMenuBehaviour.Instance.subtractAll.SetActive(true);
                 foreach (GameObject item in MainMenuBehaviour.Instance.SubtractionLevels)
                 {
@@ -316,7 +328,13 @@ public class StartLevelInit : MonoBehaviour
                 MainMenuBehaviour.Instance.SubtractionLevels[1].SetActive(true);
                 break;
             case 3:
-                Debug.Log("Let's Start Level 3 ");
+                   Debug.Log("Let's Start Level 3 Subtraction ");
+                MainMenuBehaviour.Instance.subtractAll.SetActive(true);
+                foreach (GameObject item in MainMenuBehaviour.Instance.SubtractionLevels)
+                {
+                    item.SetActive(false);
+                }
+                MainMenuBehaviour.Instance.SubtractionLevels[2].SetActive(true);
                 break;
             case 4:
                 Debug.Log("Let's Start Level 4 ");
@@ -359,7 +377,7 @@ public class StartLevelInit : MonoBehaviour
                 MainMenuBehaviour.Instance.DivisionLevels[0].SetActive(true);
                 break;
             case 2:
-                Debug.Log("Let's Start Level 2 ");
+                Debug.Log("Let's Start Level 2 Division ");
                 MainMenuBehaviour.Instance.divisionAll.SetActive(true);
                 foreach (GameObject item in MainMenuBehaviour.Instance.DivisionLevels)
                 {
@@ -369,7 +387,13 @@ public class StartLevelInit : MonoBehaviour
 
                 break;
             case 3:
-                Debug.Log("Let's Start Level 3 ");
+                        Debug.Log("Let's Start Level 3 Division ");
+                MainMenuBehaviour.Instance.divisionAll.SetActive(true);
+                foreach (GameObject item in MainMenuBehaviour.Instance.DivisionLevels)
+                {
+                    item.SetActive(false);
+                }
+                MainMenuBehaviour.Instance.DivisionLevels[2].SetActive(true);
                 break;
             case 4:
                 Debug.Log("Let's Start Level 4 ");
