@@ -9,15 +9,14 @@ public class TimesTableGridPopulator : MonoBehaviour
 {
     [Header("Stars")]
     [SerializeField] private StarMeter starMeter;
-
-    public float answerDelay = 0.35f;
+    [SerializeField] ParticleSystem cofetti_PS;
     public static TimesTableGridPopulator Instance;
     public AudioSource clickSound;
 
     public enum InnerCellsMode { Blank, Products }
     public enum Operation { Addition, Subtraction, Multiplication, Division }
 
-    // ✅ Multiple selectable fields
+    // Multiple selectable fields
     [System.Flags]
     public enum GuessField
     {
@@ -27,17 +26,29 @@ public class TimesTableGridPopulator : MonoBehaviour
         Final  = 1 << 2
     }
 
+    // NEW: how the answer is given
+    public enum InputMode { ClickGrid, Typed }
+
     [Header("Grid Setup")]
     [SerializeField] private RectTransform gridParent;
     [SerializeField] private int maxFactor = 9;
     [SerializeField] private InnerCellsMode innerMode = InnerCellsMode.Blank;
 
     [Tooltip("Pick the operation for this level.")]
-    [SerializeField] private Operation operation = Operation.Addition;
+    [SerializeField] private Operation operation = Operation.Multiplication;
 
     [Header("Equation Setup")]
     [Tooltip("Which number(s) should be hidden with '?' for the player to guess.")]
-    [SerializeField] private GuessField guessField = GuessField.Final;
+    [SerializeField] private GuessField guessField = GuessField.Second;
+
+    [Tooltip("How the player answers.")]
+    [SerializeField] private InputMode inputMode = InputMode.Typed;
+
+    [Header("Typed-Answer UI (used when InputMode = Typed)")]
+    [SerializeField] private TMP_Text typedGuessText;   // shows user's current input
+    [SerializeField] private AudioSource sfxSource;
+    [SerializeField] private AudioClip correctClip;
+    [SerializeField] private AudioClip wrongClip;
 
     [Header("Colors")]
     [SerializeField] private Color headerColor = new Color(0.90f, 0.35f, 0.25f);
@@ -78,19 +89,20 @@ public class TimesTableGridPopulator : MonoBehaviour
     private readonly List<CellRef> hiddenCells = new();
     private Coroutine jiggleCo;
 
-    private int targetRow, targetCol, targetValue;
-    private int targetQuotient;
+    // current question (the actual hidden cell that defines the equation)
+    private int targetRow, targetCol, targetValue;  // targetValue = op(row,col) except Division where it's quotient
+    private int targetQuotient;                     // for Division only (quotient)
 
+    // hover state (only for ClickGrid mode)
     private int hoverRow = 0, hoverCol = 0;
 
     private int Rows => maxFactor + 1;
     private int Cols => maxFactor + 1;
 
-    public int cellText_Size;
+    public int cellText_Size = 48;
 
-    // Put this anywhere in the class (e.g., under CalcValue)
-
-
+    // typed input buffer
+    private string typedBuffer = "";
 
     private struct CellRef
     {
@@ -124,12 +136,14 @@ public class TimesTableGridPopulator : MonoBehaviour
         }
 
         if (!shaker) shaker = FindObjectOfType<ScreenShakerUI>();
+        UpdateTypedText();
     }
 
     void OnEnable()
     {
         Populate();
-        if (jiggleEnabled && jiggleCo == null) jiggleCo = StartCoroutine(JiggleLoop());
+        if (jiggleEnabled && inputMode == InputMode.ClickGrid && jiggleCo == null)
+            jiggleCo = StartCoroutine(JiggleLoop());
     }
 
     void OnDisable()
@@ -138,43 +152,146 @@ public class TimesTableGridPopulator : MonoBehaviour
         KillAllTweensAndResetScale();
     }
 
-private bool IsCorrectPick(int r, int c)
-{
-    switch (operation)
+    // ---------- PUBLIC UI HOOKS (for keypad/buttons) ----------
+    public void AppendDigit(int d)
     {
-        case Operation.Addition:
-            if (acceptSymmetricPair)
-                return (r == targetRow && c == targetCol) || (r == targetCol && c == targetRow);
-            return (r == targetRow && c == targetCol);
-
-        case Operation.Multiplication:
-            if (acceptSymmetricPair)
-                return (r == targetRow && c == targetCol) || (r == targetCol && c == targetRow);
-            return (r == targetRow && c == targetCol);
-
-        case Operation.Subtraction:
-            return (r == targetRow && c == targetCol);
-
-        case Operation.Division:
-            if (c == 0) return false;
-            return (r / c == targetRow / targetCol && r % c == 0);
-
-        default:
-            return (r == targetRow && c == targetCol);
+        if (inputMode != InputMode.Typed) return;
+        d = Mathf.Clamp(d, 0, 9);
+        if (typedBuffer.Length >= 3) return; // simple cap
+        typedBuffer += d.ToString();
+        UpdateTypedText();
     }
-}
 
-private int GridDisplayValue(int r, int c)
-{
-    switch (operation)
+    public void Backspace()
     {
-        case Operation.Addition:        return r + c;   // <-- show sums on Addition
-        case Operation.Subtraction:     return r - c;   // optional, keeps things consistent
-        case Operation.Multiplication:  return r * c;
-        case Operation.Division:        return r * c;   // keep product table for Division
-        default:                        return r * c;
+        if (inputMode != InputMode.Typed) return;
+        if (typedBuffer.Length > 0)
+            typedBuffer = typedBuffer.Substring(0, typedBuffer.Length - 1);
+        UpdateTypedText();
     }
-}
+
+    public void ClearGuess()
+    {
+        if (inputMode != InputMode.Typed) return;
+        typedBuffer = "";
+        UpdateTypedText();
+    }
+
+    public void OnCheckPressed()
+    {
+        if (inputMode != InputMode.Typed) return;
+
+        if (!int.TryParse(typedBuffer, out int guess))
+        {
+            PlayWrong();
+            return;
+        }
+
+        bool correct = false;
+
+        // In typed mode, the correct value is exactly the hidden slot:
+        // - If guessing First: guess must equal targetRow
+        // - If guessing Second: guess must equal targetCol
+        // - If guessing Final: guess must equal op(row,col) or quotient for Division
+        if (guessField.HasFlag(GuessField.First))
+        {
+            correct = (guess == targetRow);
+        }
+        else if (guessField.HasFlag(GuessField.Second))
+        {
+            correct = (guess == targetCol);
+        }
+        else if (guessField.HasFlag(GuessField.Final))
+        {
+            correct = (operation == Operation.Division) ? (guess == targetQuotient)
+                                                        : (guess == targetValue);
+        }
+
+        if (correct)
+        {
+            // Fill texts
+            if (firstNumberText && guessField.HasFlag(GuessField.First))  firstNumberText.text  = targetRow.ToString();
+            if (secondNumberText && guessField.HasFlag(GuessField.Second)) secondNumberText.text = targetCol.ToString();
+            if (finalNumberText && guessField.HasFlag(GuessField.Final))
+                finalNumberText.text = (operation == Operation.Division) ? targetQuotient.ToString()
+                                                                          : targetValue.ToString();
+
+            // Reveal the corresponding grid cell (row, col)
+            var idx = Index(targetRow, targetCol);
+            RevealCellPermanently(targetRow, targetCol, cellTexts[idx], cellRects[idx]);
+
+            hiddenCells.RemoveAll(cell => cell.r == targetRow && cell.c == targetCol);
+
+            PlayCorrect();
+            starMeter?.AddCorrect();
+
+            // next
+            typedBuffer = "";
+            UpdateTypedText();
+            StartCoroutine(NextQuestionAfterDelay(0.35f));
+        }
+        else
+        {
+            PlayWrong();
+            // keep the same question; let the user try again
+        }
+    }
+    // ----------------------------------------------------------
+
+    private void PlayCorrect()
+    {
+        if (cofetti_PS != null) cofetti_PS.Play();
+        if (sfxSource && correctClip ) sfxSource.PlayOneShot(correctClip);
+    }
+    private void PlayWrong()
+    {
+        if (sfxSource && wrongClip && !sfxSource.isPlaying) sfxSource.PlayOneShot(wrongClip);
+    }
+    private void UpdateTypedText()
+    {
+        if (!typedGuessText) return;
+        typedGuessText.text = string.IsNullOrEmpty(typedBuffer) ? "?" : typedBuffer;
+    }
+
+    private bool IsCorrectPick(int r, int c)
+    {
+        // Used only for ClickGrid mode
+        switch (operation)
+        {
+            case Operation.Addition:
+                if (acceptSymmetricPair)
+                    return (r == targetRow && c == targetCol) || (r == targetCol && c == targetRow);
+                return (r == targetRow && c == targetCol);
+
+            case Operation.Multiplication:
+                if (acceptSymmetricPair)
+                    return (r == targetRow && c == targetCol) || (r == targetCol && c == targetRow);
+                return (r == targetRow && c == targetCol);
+
+            case Operation.Subtraction:
+                return (r == targetRow && c == targetCol);
+
+            case Operation.Division:
+                if (c == 0) return false;
+                return (r / c == targetRow / targetCol && r % c == 0);
+
+            default:
+                return (r == targetRow && c == targetCol);
+        }
+    }
+
+    private int GridDisplayValue(int r, int c)
+    {
+        switch (operation)
+        {
+            case Operation.Addition:        return r + c;   // sum on Addition
+            case Operation.Subtraction:     return r - c;   // optional
+            case Operation.Multiplication:  return r * c;
+            case Operation.Division:        return r * c;   // product table for Division (teaches facts)
+            default:                        return r * c;
+        }
+    }
+
     public void Populate()
     {
         hiddenCells.Clear();
@@ -186,7 +303,7 @@ private int GridDisplayValue(int r, int c)
                 int idx = Index(r, c);
                 var g   = cellGraphics[idx];
                 var txt = cellTexts[idx];
-                cellTexts[idx].fontSize = cellText_Size;
+                if (txt) txt.fontSize = cellText_Size;
                 var rt  = cellRects[idx];
 
                 if (rt) { rt.DOKill(true); rt.localScale = Vector3.one; }
@@ -202,8 +319,7 @@ private int GridDisplayValue(int r, int c)
                     else if (r == 0)                    txt.text = c.ToString();
                     else if (c == 0)                    txt.text = r.ToString();
                     else if (innerMode == InnerCellsMode.Products)
-                       txt.text = GridDisplayValue(r, c).ToString();
-
+                        txt.text = GridDisplayValue(r, c).ToString();
                     else
                         txt.text = "";
                 }
@@ -211,7 +327,8 @@ private int GridDisplayValue(int r, int c)
                 var clickable = rt ? rt.GetComponent<TimesTableClickableCell>() : null;
                 if (rt && clickable == null) clickable = rt.gameObject.AddComponent<TimesTableClickableCell>();
 
-                bool disabled = isHeader || (innerMode == InnerCellsMode.Products) || !playable;
+                bool disabled = isHeader || (innerMode == InnerCellsMode.Products) || !playable
+                                || (inputMode == InputMode.Typed); // disable clicks in typed mode
                 clickable?.Init(this, r, c, disabled);
 
                 if (!isHeader && innerMode == InnerCellsMode.Blank && playable && txt && string.IsNullOrEmpty(txt.text))
@@ -230,7 +347,7 @@ private int GridDisplayValue(int r, int c)
             Operation.Addition       => "+",
             Operation.Subtraction    => "−",
             Operation.Multiplication => "×",
-            Operation.Division       => "×",
+            Operation.Division       => "÷",
             _ => "?"
         };
     }
@@ -262,8 +379,8 @@ private int GridDisplayValue(int r, int c)
 
         if (operation == Operation.Division)
         {
-            targetQuotient = targetRow / targetCol;
-            targetValue    = targetRow * targetCol;
+            targetQuotient = targetRow / targetCol; // integer
+            targetValue    = targetRow * targetCol; // for grid display (product table)
 
             SetEquationTextsWithQuestion(
                 targetRow.ToString(),
@@ -282,6 +399,13 @@ private int GridDisplayValue(int r, int c)
                 targetValue.ToString(),
                 guessField
             );
+        }
+
+        // reset typed buffer for new question
+        if (inputMode == InputMode.Typed)
+        {
+            typedBuffer = "";
+            UpdateTypedText();
         }
 
         hoverRow = hoverCol = 0;
@@ -306,15 +430,18 @@ private int GridDisplayValue(int r, int c)
         if (equalsText) equalsText.text = "=";
 
         if (firstNumberText)
-            firstNumberText.text = whichToHide.HasFlag(GuessField.First) ? "?" : first;
+            firstNumberText.text  = whichToHide.HasFlag(GuessField.First)  ? "?" : first;
         if (secondNumberText)
             secondNumberText.text = whichToHide.HasFlag(GuessField.Second) ? "?" : second;
         if (finalNumberText)
-            finalNumberText.text = whichToHide.HasFlag(GuessField.Final) ? "?" : final;
+            finalNumberText.text  = whichToHide.HasFlag(GuessField.Final)  ? "?" : final;
     }
 
+    // -------- Click mode only --------
     public bool OnCellClicked(int r, int c, RectTransform rt)
     {
+        if (inputMode != InputMode.ClickGrid) return false;
+
         if (clickSound) clickSound.Play();
 
         int idx = Index(r, c);
@@ -348,7 +475,8 @@ private int GridDisplayValue(int r, int c)
             hiddenCells.RemoveAll(cell => cell.r == r && cell.c == c);
 
             starMeter?.AddCorrect();
-            StartCoroutine(NextQuestionAfterDelay(answerDelay));
+
+            StartCoroutine(NextQuestionAfterDelay(0.35f));
             return true;
         }
         else
@@ -357,6 +485,7 @@ private int GridDisplayValue(int r, int c)
             return false;
         }
     }
+    // ---------------------------------
 
     private IEnumerator NextQuestionAfterDelay(float delay)
     {
@@ -369,7 +498,6 @@ private int GridDisplayValue(int r, int c)
         if (!txt || !rt) return;
 
         txt.text = GridDisplayValue(r, c).ToString();
-
 
         rt.DOKill(true);
         rt.localScale = Vector3.one;
@@ -387,7 +515,6 @@ private int GridDisplayValue(int r, int c)
         if (!txt || !rt) yield break;
 
         txt.text = GridDisplayValue(r, c).ToString();
-
         rt.DOKill(true);
         rt.localScale = Vector3.one;
 
@@ -403,11 +530,13 @@ private int GridDisplayValue(int r, int c)
 
     public void OnHoverEnter(int r, int c)
     {
+        if (inputMode != InputMode.ClickGrid) return;
         hoverRow = r; hoverCol = c;
         RefreshColors();
     }
     public void OnHoverExit(int r, int c)
     {
+        if (inputMode != InputMode.ClickGrid) return;
         if (hoverRow == r && hoverCol == c) { hoverRow = hoverCol = 0; }
         RefreshColors();
     }
@@ -422,7 +551,7 @@ private int GridDisplayValue(int r, int c)
                 if (cellGraphics[idx]) cellGraphics[idx].color = isHeader ? headerColor : bodyColor;
             }
 
-        if (targetRow > 0 && targetCol > 0)
+        if (inputMode == InputMode.ClickGrid && targetRow > 0 && targetCol > 0)
         {
             PaintCross(targetRow, targetCol, targetColor);
 
@@ -434,7 +563,7 @@ private int GridDisplayValue(int r, int c)
             }
         }
 
-        if (hoverRow > 0 && hoverCol > 0)
+        if (inputMode == InputMode.ClickGrid && hoverRow > 0 && hoverCol > 0)
             PaintCross(hoverRow, hoverCol, hoverColor);
     }
 

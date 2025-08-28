@@ -1,9 +1,7 @@
 using System.Collections.Generic;
-using Ricimi;
 using TMPro;
-using UnityEditor.Rendering;
 using UnityEngine;
-using UnityEngine.Rendering;
+
 
 public class LevelDesigner : MonoBehaviour
 {
